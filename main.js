@@ -1,6 +1,12 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
+
+function handleSetTitle (event, title) {
+  const webContents = event.sender
+  const win = BrowserWindow.fromWebContents(webContents)
+  win.setTitle(title)
+}
 
 function createWindow () {
   // Create the browser window.
@@ -17,15 +23,16 @@ function createWindow () {
     },
     backgroundColor: '#000000',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true
     }
   })
 
   // and load the index.html of the app.
-  // mainWindow.loadFile('index.html')
+  mainWindow.loadFile('index.html')
 
   // load a remote URL
-  mainWindow.loadURL('https://chat.openai.com/')
+  // mainWindow.loadURL('https://chat.openai.com/')
 
   const childWindow1 = new BrowserWindow({
     width: 800,
@@ -37,10 +44,10 @@ function createWindow () {
 
   const mainWc = mainWindow.webContents
   mainWc.on("dom-ready", () => {
-    childWindow1.loadURL('https://github.com')
-    childWindow1.once('ready-to-show', () => {
-      childWindow1.show()
-    })
+    // childWindow1.loadURL('https://github.com')
+    // childWindow1.once('ready-to-show', () => {
+    //   childWindow1.show()
+    // })
   }) 
 
   // Open the DevTools.
@@ -51,6 +58,7 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  ipcMain.on('set-title', handleSetTitle)
   createWindow()
 
   app.on('activate', function () {
