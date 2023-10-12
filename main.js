@@ -27,6 +27,22 @@ function createWindow () {
   // load a remote URL
   mainWindow.loadURL('https://chat.openai.com/')
 
+  const childWindow1 = new BrowserWindow({
+    width: 800,
+    height: 600,
+    parent: mainWindow,
+    // modal: true,
+    show: false
+  })
+
+  const mainWc = mainWindow.webContents
+  mainWc.on("dom-ready", () => {
+    childWindow1.loadURL('https://github.com')
+    childWindow1.once('ready-to-show', () => {
+      childWindow1.show()
+    })
+  }) 
+
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
 }
