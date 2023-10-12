@@ -5,18 +5,30 @@ const path = require('node:path')
 function createWindow () {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1024,
+    height: 800,
+    title: "Demo",
+    // frame: false,
+    // titleBarStyle: "customButtonsOnHover",
+    // roundedCorners: false,
+    titleBarOverlay: {
+      color: '#FF0000',
+      height: 300
+    },
+    backgroundColor: '#000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  // mainWindow.loadFile('index.html')
+
+  // load a remote URL
+  mainWindow.loadURL('https://chat.openai.com/')
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
