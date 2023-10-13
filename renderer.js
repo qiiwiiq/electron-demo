@@ -29,3 +29,9 @@ window.electronAPI.handleCounter((event, value) => {
   counter.innerText = newValue
   event.sender.send('counter-value', newValue)
 })
+
+const openDialogBtn = document.getElementById('btnDialog')
+
+openDialogBtn.addEventListener('click', () => {
+  window.electronAPI.openDialog()
+})

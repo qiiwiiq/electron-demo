@@ -15,6 +15,25 @@ async function handleFileOpen () {
   }
 }
 
+function handleOpenDialog () {
+  // dialog.showOpenDialog({
+  //   defaultPath: app.getPath("downloads"),
+  //   buttonLabel: 'Select'
+  // }).then(res => console.log(res));
+
+  dialog.showSaveDialog({
+    defaultPath: app.getPath("downloads"),
+  }).then(res => console.log(res));
+
+  // dialog.showMessageBox({
+  //   message: 'This is a message box',
+  //   type: 'info',
+  //   buttons: ['gotcha'],
+  // })
+
+  // dialog.showErrorBox('Error', 'This is an error message')
+}
+
 function createWindow () {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -97,6 +116,7 @@ function createWindow () {
 app.whenReady().then(() => {
   ipcMain.on('set-title', handleSetTitle)
   ipcMain.handle('dialog:openFile', handleFileOpen)
+  ipcMain.on('openDialog', handleOpenDialog)
 
   createWindow()
 
