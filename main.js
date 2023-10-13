@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron')
 const path = require('node:path')
 
 function handleSetTitle (event, title) {
@@ -34,6 +34,36 @@ function createWindow () {
       nodeIntegration: true
     }
   })
+
+  const menu = Menu.buildFromTemplate([
+    {
+      label: app.name,
+      submenu: [
+        {
+          click: () => mainWindow.webContents.send('update-counter', 1),
+          label: 'Increment'
+        },
+        {
+          click: () => mainWindow.webContents.send('update-counter', -1),
+          label: 'Decrement'
+        }
+      ]
+    },
+    {
+      label: 'Test',
+      submenu: [
+        {
+          click: () => mainWindow.webContents.send('update-counter', 1),
+          label: 'Increment'
+        },
+        {
+          click: () => mainWindow.webContents.send('update-counter', -1),
+          label: 'Decrement'
+        }
+      ]
+    },
+  ])
+  Menu.setApplicationMenu(menu)
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
