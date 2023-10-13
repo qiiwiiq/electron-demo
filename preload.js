@@ -13,4 +13,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
   openDialog: () => ipcRenderer.send('openDialog'),
   handleCounter: (callback) => ipcRenderer.on('update-counter', callback),
+  showContextMenu: () => ipcRenderer.send('show-context-menu'),
+  getContextMenuCommand: (callback) => ipcRenderer.on('context-menu-command', callback),
 })

@@ -58,18 +58,19 @@ function createWindow () {
     {
       label: app.name,
       submenu: [
-        {
-          click: () => mainWindow.webContents.send('update-counter', 1),
-          label: 'Increment'
-        },
-        {
-          click: () => mainWindow.webContents.send('update-counter', -1),
-          label: 'Decrement'
-        }
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
       ]
     },
     {
-      label: 'Test',
+      label: 'Counter',
       submenu: [
         {
           click: () => mainWindow.webContents.send('update-counter', 1),
@@ -83,6 +84,16 @@ function createWindow () {
     },
   ])
   Menu.setApplicationMenu(menu)
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'back', click: () => mainWindow.webContents.goBack() },
+    { role: 'quit' },
+  ]);
+
+  ipcMain.on('show-context-menu', (event) => {
+    contextMenu.popup(BrowserWindow.fromWebContents(event.sender))
+  })
+
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
