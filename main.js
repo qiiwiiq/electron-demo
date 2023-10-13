@@ -1,11 +1,18 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('node:path')
 
 function handleSetTitle (event, title) {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
   win.setTitle(title)
+}
+
+async function handleFileOpen () {
+  const { canceled, filePaths } = await dialog.showOpenDialog()
+  if (!canceled) {
+    return filePaths[0]
+  }
 }
 
 function createWindow () {
@@ -21,7 +28,7 @@ function createWindow () {
       color: '#FF0000',
       height: 300
     },
-    backgroundColor: '#000000',
+    // backgroundColor: '#000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true
@@ -59,6 +66,8 @@ function createWindow () {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   ipcMain.on('set-title', handleSetTitle)
+  ipcMain.handle('dialog:openFile', handleFileOpen)
+
   createWindow()
 
   app.on('activate', function () {

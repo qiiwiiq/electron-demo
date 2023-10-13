@@ -12,3 +12,11 @@ setButton.addEventListener('click', () => {
   const title = titleInput.value
   window.electronAPI.setTitle(title)
 })
+
+const openFileBtn = document.getElementById('btnOpenFile')
+const filePathElement = document.getElementById('filePath')
+
+openFileBtn.addEventListener('click', async () => {
+  const filePath = await window.electronAPI.openFile()
+  filePathElement.innerText = filePath
+})
