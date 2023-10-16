@@ -1,6 +1,8 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu, dialog, globalShortcut } = require('electron')
+const { app, BrowserWindow, ipcMain, Menu, dialog, globalShortcut, Tray } = require('electron')
 const path = require('node:path')
+
+let tray = null;
 
 function handleSetTitle (event, title) {
   const webContents = event.sender
@@ -144,6 +146,16 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  tray = new Tray('icon.png');
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Item1', type: 'radio' },
+    { label: 'Item2', type: 'radio' },
+    { label: 'Item3', type: 'radio', checked: true },
+    { label: 'Item4', type: 'radio' }
+  ])
+  tray.setToolTip('This is my application.')
+  tray.setContextMenu(contextMenu)
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
