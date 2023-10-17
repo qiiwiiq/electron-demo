@@ -147,7 +147,8 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 
-  tray = new Tray('icon.png');
+  const iconPath = path.join(__dirname, 'icon.png');
+  tray = new Tray(iconPath);
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Item1', type: 'radio' },
     { label: 'Item2', type: 'radio' },
