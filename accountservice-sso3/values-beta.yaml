@@ -1,0 +1,215 @@
+connext3-helm-template:
+  ## essential information
+
+  # project name
+  project: wse
+  # service name
+  serviceName: accountservice-sso3-beta
+  # environment:
+  environment: &environment "beta"
+  # version
+  serviceVersion: "0.0.1"
+  # creator
+  creator: arthur-li
+
+  # for logging operator to collect logs
+  logging-operator: enable
+
+  ## traffic management
+  # If you want to disable Istio, set enableIstio to false and subsetService to true
+  enableIstio: false
+  # alphanumeric version name for service subset
+  subsetVersion: "v001"
+  subsetService: true
+
+  ## namespace
+
+  namespace:
+    create: false
+    existingNamespace: accountservice
+    overwriteName: null
+    additionalLabels: null
+
+  ## configmap
+
+  configMap:
+    overwriteName: null
+    additionalLabels: null
+    data:
+      TERM: "xterm"
+      Phase: *environment
+      REGION: tokyo
+
+    volumesData: null
+
+  ## secretprovider
+
+  secretProvider:
+    overwriteName: null
+    additionalLabels: null
+    objects: null
+
+  ## service
+
+  service:
+    enable: true
+    overwriteName: null
+    additionalLabels: null
+    # protocal
+    protocol: TCP
+    # port (service listen to) default 80
+    port: 80
+    # target port (container listen to)
+    targetPort: 80
+
+  ## deployment
+
+  deployment:
+    overwriteName: null
+    additionalLabels: null
+
+  ##  deployment.spec
+
+  pod:
+    overwriteName: null
+    # default to module nodegroup for micro-service. overwrite it for ops/api
+    overwriteTolerations: null
+    additionalLabels: null
+    additionalSelectorLabels: null
+    additionalAnnotations: {}
+      # the following additional value is used when Istio is enabled
+      #traffic.sidecar.istio.io/includeOutboundIPRanges: ""
+      #traffic.sidecar.istio.io/includeOutboundPorts: "80"
+    # resource request
+    resourceRequest:
+      memory: "250Mi"
+      cpu: "50m"
+    # resource limit
+    resourceLimit:
+      memory: "750Mi"
+      cpu: "100m"
+    # image URI:TAG
+    # for dev/stg, use argoCD image updator plugin to simplify process
+    # for production, use exact tag to specify your image instead of "latest"
+    image: "056623867196.dkr.ecr.ap-northeast-1.amazonaws.com/accountservice-beta-sso:latest-sso3"
+    command: null
+    args: null
+    # protocol
+    protocol: TCP
+    # port (container listen to)
+    port: 80
+    #initContainers
+    additionalContainerConfig: 
+      livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /signin/health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+      readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /signin/health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+
+    volumes:
+      - emptyDir: {}
+        name: nginx-log
+      - emptyDir: {}
+        name: app-log-beta
+
+    volumeMounts:
+      - mountPath: /var/log/nginx
+        name: nginx-log
+      - mountPath: /trend/sso/logs
+        name: app-log-beta
+      
+  ## service account
+
+  serviceAccount:
+    overwriteName: null
+    additionalLabels: null
+    # attached IAMrole arn
+    annotations: {
+        eks.amazonaws.com/role-arn: "arn:aws:iam::056623867196:role/accountservice-beta-ssm-role",
+    }
+
+  ## horizontal pod autoscaling
+
+  hpa:
+    overwriteName: null
+    additionalLabels: null
+    # recommended to set to 2 or above
+    minReplicas: 3
+    maxReplicas: 7
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 60
+
+  # If you don't use Istio, no need to change the virtualService section
+  virtualService:
+    # create external facing virtual service or not
+    # when enableIstio is false, this setting will be omitted
+    createExternal: true
+    overwriteName: null
+    additionalLabels: null
+    # if createExternal=false, below configs are omitted
+    gateways:
+      - awse-gateway
+    hosts:
+      - wse.trendmicro.com
+    # !! choose only one: simple or customize routing config
+    # simple routing: use simpleRoutingRules + simpleMirror
+    # all rules in simpleRoutingRules will mirror to simpleMirror
+    # simpleRoutingRules apply to external virtual service (external FQDN)
+    # simple Mirror also apply to internal service (used by ras)
+    simpleRoutingRules:
+      - uriPrefix: "/"
+        overrideDestinationHost: null
+        overrideDestinationPort: null
+        overrideDestinationSubset: null
+        retriesAttempts: "0"
+
+  destinationRule:
+    overwriteName: null
+    additionalLabels: null
+    customizeRule: null
+
+  pdb:
+    overwriteName: null
+    additionalLabels: null
+    minAvailable: 50%
+
+  ingress:
+    enable: true
+    overwriteName: null
+    additionalAnnotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: '443'
+      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-1:056623867196:certificate/9acca613-f6e6-42d5-a47b-42f006a69ff0
+      alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+      alb.ingress.kubernetes.io/waf-acl-id: ee5197bc-eb13-4413-8081-852d8350b5ac
+      alb.ingress.kubernetes.io/shield-advanced-protection: 'true'
+      alb.ingress.kubernetes.io/healthcheck-path: /signin/health
+      alb.ingress.kubernetes.io/load-balancer-attributes: access_logs.s3.enabled=true,access_logs.s3.bucket=stg.myaccount.alb.log,access_logs.s3.prefix=sso/beta
+      alb.ingress.kubernetes.io/tags: env=beta,Service=sso3
+      alb.ingress.kubernetes.io/success-codes: "200"
+      alb.ingress.kubernetes.io/target-type: ip
+    host: sso1beta.trendmicro.com
+    port: 80
+    path: /
