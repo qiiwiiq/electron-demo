@@ -1,0 +1,4 @@
+Beta-setting:
+  project: test
+  pod:
+    image: "beta-10001"
